@@ -1,7 +1,8 @@
+Django==4.2
 django-jazzmin
 python-dotenv
 psycopg2-binary
-Django==4.2
 whitenoise
 django-shortuuidfield
 gunicorn
+django-cors-headers
