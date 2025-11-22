@@ -73,7 +73,7 @@ NOWPAYMENTS = {
     }
 }
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['*', 'arbitrageflow-92945097390.europe-west1.run.app', 'arbitrageflow.online']
 
 AUTH_USER_MODEL = 'account.User'
 
