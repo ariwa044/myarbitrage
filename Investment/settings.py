@@ -75,7 +75,10 @@ NOWPAYMENTS = {
 
 ALLOWED_HOSTS = ['*', 'myarbitrage-92945097390.europe-west1.run.app', 'arbitrageflow.online']
 
-
+CSRF_TRUSTED_ORIGINS = [
+    'https://myarbitrage-92945097390.europe-west1.run.app',
+    'https://arbitrageflow.online',
+    ]
 
 AUTH_USER_MODEL = 'account.User'
 
