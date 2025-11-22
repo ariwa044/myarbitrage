@@ -1,0 +1,350 @@
+{% extends 'base.html' %}
+{% block title %}Transaction History{% endblock %}
+{% block content %}
+<style>
+/* ===== TRANSACTIONS PAGE BEAUTIFIED STYLES ===== */
+.transactions-page {
+  padding: 2rem 0;
+  margin-top: 1rem;
+}
+
+.transactions-page h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.transactions-page h2::before {
+  content: "📋";
+  font-size: 1.75rem;
+}
+
+/* Table Styling */
+.transactions-page .table {
+  border-collapse: collapse;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  transition: box-shadow 0.3s ease;
+}
+
+.transactions-page .table:hover {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+}
+
+/* Table Header */
+.transactions-page thead {
+  background: linear-gradient(90deg, #06b6d4 0%, #0891b2 100%);
+  color: #ffffff;
+}
+
+.transactions-page thead th {
+  padding: 1rem 1.25rem;
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #ffffff;
+  border: none;
+}
+
+/* Table Body */
+.transactions-page tbody tr {
+  transition: all 0.3s ease;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.transactions-page tbody tr:hover {
+  background-color: #f8fafc;
+  transform: translateX(4px);
+}
+
+.transactions-page tbody td {
+  padding: 1rem 1.25rem;
+  color: #1e293b;
+  font-size: 0.95rem;
+  vertical-align: middle;
+}
+
+/* Type Cell */
+.transactions-page td.type-cell {
+  font-weight: 700;
+  color: #0891b2;
+  min-width: 120px;
+}
+
+/* Status Badge */
+.transactions-page .status-cell {
+  font-weight: 700;
+  font-size: 0.8rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 999px;
+  display: inline-block;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.transactions-page .status-cell:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.transactions-page .status-cell.pending {
+  background: linear-gradient(135deg, #f59e0b, #f97316);
+  color: #ffffff;
+}
+
+.transactions-page .status-cell.completed {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #ffffff;
+}
+
+.transactions-page .status-cell.failed {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: #ffffff;
+}
+
+.transactions-page .status-cell.expired,
+.transactions-page .status-cell.cancelled {
+  background: linear-gradient(135deg, #6b7280, #4b5563);
+  color: #ffffff;
+}
+
+/* Amount Column */
+.transactions-page tbody td:nth-child(2) {
+  font-weight: 600;
+  color: #059669;
+  font-size: 1rem;
+}
+
+/* Date Column */
+.transactions-page tbody td:nth-child(4) {
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+/* Pagination */
+.transactions-page .pagination {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 2rem;
+  list-style: none;
+  flex-wrap: wrap;
+}
+
+.transactions-page .page-item {
+  display: inline-block;
+}
+
+.transactions-page h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-top: 3rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+
+}
+.transactions-page .page-link {
+  padding: 0.6rem 0.9rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  color: #0891b2;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.transactions-page .page-link:hover {
+  background: #f0f9fc;
+  border-color: #06b6d4;
+  color: #0e7490;
+}
+
+.transactions-page .page-item.active .page-link {
+  background: linear-gradient(90deg, #06b6d4, #0891b2);
+  color: #ffffff;
+  border-color: #0891b2;
+  box-shadow: 0 4px 10px rgba(6, 182, 212, 0.3);
+}
+
+/* Empty State (optional - if no transactions) */
+.transactions-page .empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #64748b;
+}
+
+.transactions-page .empty-state-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .transactions-page h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .transactions-page .table {
+    font-size: 0.9rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+
+  .transactions-page .table thead {
+    display: none;
+  }
+
+  .transactions-page .table,
+  .transactions-page .table tbody,
+  .transactions-page .table tr,
+  .transactions-page .table td {
+    display: block;
+    width: 100%;
+  }
+
+  .transactions-page .table tr {
+    margin-bottom: 1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem;
+    padding: 0.75rem;
+    background: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  }
+
+  .transactions-page .table td {
+    padding: 0.75rem 0;
+    border: none;
+    text-align: right;
+    position: relative;
+    padding-left: 45%;
+  }
+
+  .transactions-page .table td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 0.75rem;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+  }
+
+  .transactions-page td.type-cell::before {
+    content: "Type";
+  }
+
+  .transactions-page tbody td:nth-child(2)::before {
+    content: "Amount";
+  }
+
+  .transactions-page tbody td:nth-child(3)::before {
+    content: "Status";
+  }
+
+  .transactions-page tbody td:nth-child(4)::before {
+    content: "Date";
+  }
+
+  .transactions-page .pagination {
+    margin-top: 1.5rem;
+    gap: 0.35rem;
+  }
+
+  .transactions-page .page-link {
+    padding: 0.5rem 0.7rem;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .transactions-page {
+    padding: 1rem 0;
+  }
+
+  .transactions-page h2 {
+    font-size: 1.25rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .transactions-page .table tr {
+    margin-bottom: 0.75rem;
+    padding: 0.5rem;
+  }
+
+  .transactions-page .table td {
+    padding: 0.5rem 0;
+    padding-left: 40%;
+  }
+
+  .transactions-page .status-cell {
+    font-size: 0.7rem;
+    padding: 0.35rem 0.5rem;
+  }
+
+  .transactions-page .page-link {
+    padding: 0.4rem 0.5rem;
+    font-size: 0.75rem;
+  }
+}
+</style><div class="transactions-page">
+    <h2>Transaction History</h2>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Type</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for t in transactions %}
+            <tr>
+                <td class="type-cell">{{ t.txn_type }}</td>
+                <td>
+                    {% if t.amount_invested %}
+                        ${{ t.amount_invested }}
+                    {% else %}
+                        ${{ t.amount }}
+                    {% endif %}
+                </td>
+                <td>
+                    {% with t.status|lower as st %}
+                        <span class="status-cell {{ st }}">{{ t.status }}</span>
+                    {% endwith %}
+                </td>
+                <td>{{ t.created_at|date:"Y-m-d H:i" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <nav>
+        <ul class="pagination">
+            {% if transactions.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page={{ transactions.previous_page_number }}">Previous</a></li>
+            {% endif %}
+            <li class="page-item active"><span class="page-link">{{ transactions.number }}</span></li>
+            {% if transactions.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ transactions.next_page_number }}">Next</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
+
+{% endblock %}

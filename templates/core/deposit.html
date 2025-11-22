@@ -1,0 +1,1092 @@
+{% extends "base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Deposit Funds" %}{% endblock %}
+
+{% block extra_css %}
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<style>
+    :root {
+        --primary-color: #1f2937;
+        --secondary-color: #06b6d4;
+        --accent-color: #0891b2;
+        --success-color: #22c55e;
+        --warning-color: #f59e0b;
+        --danger-color: #ef4444;
+        --info-color: #3b82f6;
+        --bg-light: #f8fafc;
+        --bg-lighter: #f1f5f9;
+        --bg-white: #ffffff;
+        --text-dark: #0f172a;
+        --text-gray: #64748b;
+        --text-light: #94a3b8;
+        --border-color: #e2e8f0;
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        color: var(--text-dark);
+        background: linear-gradient(135deg, var(--bg-light) 0%, var(--bg-lighter) 100%);
+        line-height: 1.6;
+        font-size: 16px;
+    }
+
+    .deposit-container {
+        max-width: 900px;
+        margin: 2rem auto;
+        margin-top: 5rem;
+        padding: 0 1.5rem;
+    }
+
+    /* Hero Card */
+    .deposit-hero {
+        background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+        border-radius: 1.5rem;
+        padding: 2.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .deposit-hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(6, 182, 212, 0.15) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+
+    .deposit-hero-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .deposit-title {
+        color: var(--bg-white);
+        font-size: 2rem;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+        letter-spacing: -0.5px;
+    }
+
+    .deposit-subtitle {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .security-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(34, 197, 94, 0.15);
+        padding: 0.6rem 1.2rem;
+        border-radius: 2rem;
+        color: #22c55e;
+        font-weight: 600;
+        font-size: 0.85rem;
+        border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+
+    /* Form Section */
+    .form-section {
+        background: var(--bg-white);
+        border-radius: 1.5rem;
+        padding: 2.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .form-section-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin-bottom: 2rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .form-section-title i {
+        color: var(--secondary-color);
+        font-size: 1.5rem;
+    }
+
+    /* Form Elements */
+    .form-group {
+        margin-bottom: 1.8rem;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: var(--text-dark);
+        font-size: 0.95rem;
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-label i {
+        color: var(--secondary-color);
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="number"],
+    select {
+        font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        font-size: 1rem;
+        padding: 1rem 1.25rem;
+        border: 2px solid var(--border-color);
+        border-radius: 0.75rem;
+        color: var(--text-dark);
+        background: var(--bg-white);
+        width: 100%;
+        transition: var(--transition);
+        font-weight: 500;
+    }
+
+    input[type="text"]:focus,
+    input[type="email"]:focus,
+    input[type="number"]:focus,
+    select:focus {
+        outline: none;
+        border-color: var(--secondary-color);
+        background: #f0fdfd;
+        box-shadow: 0 0 0 4px rgba(6, 182, 212, 0.1);
+    }
+
+    select {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%2364748b' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right 1rem center;
+        background-size: 1rem;
+        padding-right: 3rem;
+    }
+
+    .input-group {
+        display: flex;
+        gap: 0;
+    }
+
+    .input-prefix {
+        display: flex;
+        align-items: center;
+        padding: 1rem 1.25rem;
+        background: var(--bg-lighter);
+        border: 2px solid var(--border-color);
+        border-right: none;
+        border-radius: 0.75rem 0 0 0.75rem;
+        color: var(--text-gray);
+        font-weight: 700;
+        font-size: 1rem;
+    }
+
+    .input-group input {
+        border-radius: 0 0.75rem 0.75rem 0;
+        border-left: none;
+    }
+
+    .input-group input:focus {
+        border-left: 2px solid var(--secondary-color);
+    }
+
+    .form-hint {
+        font-size: 0.85rem;
+        color: var(--text-gray);
+        margin-top: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .form-hint i {
+        color: var(--info-color);
+    }
+
+    .form-hint strong {
+        color: var(--text-dark);
+    }
+
+    /* Estimate Box */
+    .estimate-box {
+        margin-bottom: 1.8rem;
+    }
+
+    .estimate-box.hidden {
+        display: none;
+    }
+
+    .estimate-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 0.5rem;
+        color: #06b6d4;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .estimate-amount {
+        font-size: 16px;
+        font-weight: 800;
+        color: var(--text-dark);
+        letter-spacing: -0.5px;
+    }
+    select#id_pay_currency {
+        padding: 14px;
+        border-radius: 12px;
+        border: solid 2px #e3e9f1;
+    }
+    /* Submit Button */
+    .btn-submit {
+        width: 100%;
+        background-color: #343a40;
+        color: var(--bg-white);
+        padding: 1.1rem 2rem;
+        font-size: 1rem;
+        font-weight: 700;
+        border-radius: 0.85rem;
+        border: none;
+        cursor: pointer;
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(6, 182, 212, 0.4);
+    }
+
+    .btn-submit:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    /* Info Grid */
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+
+    .info-card {
+        background: var(--bg-white);
+        border: 2px solid var(--border-color);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        transition: var(--transition);
+    }
+
+    .info-card:hover {
+        border-color: var(--secondary-color);
+        box-shadow: 0 8px 20px rgba(6, 182, 212, 0.12);
+        transform: translateY(-2px);
+    }
+
+    .info-card-icon {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(6, 182, 212, 0.05) 100%);
+        border-radius: 0.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--secondary-color);
+        font-size: 1.3rem;
+        margin-bottom: 1rem;
+    }
+
+    .info-card-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin-bottom: 0.5rem;
+    }
+
+    .info-card-text {
+        font-size: 0.85rem;
+        color: var(--text-gray);
+        line-height: 1.6;
+    }
+
+    /* Payment Modal */
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal.show {
+        display: flex;
+    }
+
+    .modal-dialog {
+        max-width: 500px;
+        width: 90%;
+        margin: 2rem;
+    }
+
+    .modal-content {
+        background: var(--bg-white);
+        border-radius: 1.5rem;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+        overflow: hidden;
+    }
+
+    .modal-header {
+        padding: 2rem;
+        border-bottom: 2px solid var(--border-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .modal-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: var(--text-dark);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .modal-title i {
+        color: var(--secondary-color);
+    }
+
+    .modal-close {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        color: var(--text-gray);
+        cursor: pointer;
+        padding: 0;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 0.5rem;
+        transition: var(--transition);
+    }
+
+    .modal-close:hover {
+        background: var(--bg-lighter);
+        color: var(--text-dark);
+    }
+
+    .modal-body {
+        padding: 2rem;
+    }
+
+    .modal-footer {
+        padding: 1.5rem 2rem;
+        background: var(--bg-lighter);
+        border-top: 2px solid var(--border-color);
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .btn-close-modal {
+        background: var(--bg-white);
+        color: var(--text-dark);
+        border: 2px solid var(--border-color);
+        padding: 0.75rem 1.5rem;
+        font-size: 0.95rem;
+        font-weight: 600;
+        border-radius: 0.75rem;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+    .btn-close-modal:hover {
+        background: var(--bg-lighter);
+        border-color: var(--text-gray);
+    }
+
+    /* Timer */
+    .payment-timer {
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(245, 158, 11, 0.05) 100%);
+        border: 2px solid rgba(245, 158, 11, 0.3);
+        border-radius: 1rem;
+        padding: 1.2rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        font-weight: 600;
+        color: var(--warning-color);
+    }
+
+    .timer-value {
+        font-family: 'Monaco', 'Courier New', monospace;
+        font-size: 1.3rem;
+        font-weight: 800;
+    }
+
+    /* QR Code */
+    .qr-container {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .qr-code {
+        display: inline-block;
+        padding: 1.5rem;
+        background: var(--bg-white);
+        border: 2px solid var(--border-color);
+        border-radius: 1rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    /* Payment Details */
+    .payment-field {
+        margin-bottom: 1.5rem;
+    }
+
+    .payment-label {
+        font-weight: 600;
+        color: var(--text-dark);
+        font-size: 0.9rem;
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .payment-label i {
+        color: var(--secondary-color);
+    }
+
+    .payment-input-group {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .payment-input {
+        flex: 1;
+        background: var(--bg-lighter);
+        border: 2px solid var(--border-color);
+        padding: 0.9rem 1.1rem;
+        border-radius: 0.75rem;
+        font-family: 'Monaco', 'Courier New', monospace;
+        font-size: 0.85rem;
+        color: var(--text-dark);
+        word-break: break-all;
+    }
+
+    .btn-copy {
+        background: var(--bg-white);
+        border: 2px solid var(--border-color);
+        padding: 0.9rem 1.1rem;
+        border-radius: 0.75rem;
+        cursor: pointer;
+        transition: var(--transition);
+        color: var(--text-gray);
+        font-size: 1rem;
+    }
+
+    .btn-copy:hover {
+        border-color: var(--secondary-color);
+        color: var(--secondary-color);
+    }
+
+    .btn-copy.copied {
+        border-color: var(--success-color);
+        color: var(--success-color);
+    }
+
+    /* Alert Messages */
+    .alert {
+        border-radius: 0.85rem;
+        border: 2px solid;
+        padding: 1.1rem 1.3rem;
+        font-size: 0.95rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .alert-warning {
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(245, 158, 11, 0.05) 100%);
+        border-color: rgba(245, 158, 11, 0.4);
+        color: #92400e;
+    }
+
+    .alert-info {
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(6, 182, 212, 0.08) 100%);
+        border-color: rgba(6, 182, 212, 0.4);
+        color: var(--info-color);
+    }
+
+    .alert-success {
+        background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(34, 197, 94, 0.05) 100%);
+        border-color: rgba(34, 197, 94, 0.4);
+        color: #15803d;
+    }
+
+    .alert-danger {
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(239, 68, 68, 0.05) 100%);
+        border-color: rgba(239, 68, 68, 0.4);
+        color: #7f1d1d;
+    }
+
+    /* Spinner */
+    .spinner {
+        display: inline-block;
+        width: 1rem;
+        height: 1rem;
+        border: 0.2rem solid currentColor;
+        border-right-color: transparent;
+        border-radius: 50%;
+        animation: spin 0.75s linear infinite;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .deposit-hero {
+            padding: 2rem 1.5rem;
+        }
+
+        .deposit-title {
+            font-size: 1.5rem;
+        }
+
+        .form-section {
+            padding: 1.8rem;
+        }
+
+        .info-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .modal-dialog {
+            margin: 1rem;
+        }
+
+        .modal-header,
+        .modal-body {
+            padding: 1.5rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .deposit-hero {
+            padding: 1.5rem;
+        }
+
+        .deposit-title {
+            font-size: 1.3rem;
+        }
+
+        .form-section {
+            padding: 1.5rem;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            font-size: 0.9rem;
+            padding: 0.85rem 1rem;
+        }
+
+        .btn-submit {
+            padding: 1rem 1.5rem;
+            font-size: 0.95rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="deposit-container">
+    <!-- Hero Section -->
+    <div class="deposit-hero">
+        <div class="deposit-hero-content">
+            <h1 class="deposit-title">{% trans "Deposit Funds" %}</h1>
+            <p class="deposit-subtitle">{% trans "Add funds to your account securely using cryptocurrency" %}</p>
+            <div class="security-badge">
+                <i class="fas fa-shield-alt"></i>
+                <span>{% trans "Secured by NOWPayments" %}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Deposit Form -->
+    <div class="form-section">
+        <h2 class="form-section-title">
+            <i class="fas fa-wallet"></i>
+            {% trans "Payment Details" %}
+        </h2>
+
+        <form id="depositForm" method="post" novalidate>
+            {% csrf_token %}
+            
+            <!-- Amount Field -->
+            <div class="form-group">
+                <label for="{{ form.amount.id_for_label }}" class="form-label">
+                    <i class="fas fa-dollar-sign"></i>
+                    {{ form.amount.label }}
+                </label>
+                <div class="input-group">
+                    <span class="input-prefix">USD</span>
+                    {{ form.amount }}
+                </div>
+                {% if form.amount.errors %}
+                    <div class="alert alert-danger" style="margin-top: 0.75rem;">
+                        <i class="fas fa-exclamation-circle"></i>
+                        {{ form.amount.errors|join:", " }}
+                    </div>
+                {% endif %}
+                <div class="form-hint">
+                    <i class="fas fa-info-circle"></i>
+                    <span>{% trans "Minimum deposit:" %} <strong>${{ min_deposit }}</strong></span>
+                </div>
+            </div>
+
+            <!-- Cryptocurrency Field -->
+            <div class="form-group">
+                <label for="{{ form.pay_currency.id_for_label }}" class="form-label">
+                    <i class="fas fa-coins"></i>
+                    {{ form.pay_currency.label }}
+                </label>
+                {{ form.pay_currency }}
+                {% if form.pay_currency.errors %}
+                    <div class="alert alert-danger" style="margin-top: 0.75rem;">
+                        <i class="fas fa-exclamation-circle"></i>
+                        {{ form.pay_currency.errors|join:", " }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Estimated Amount Box -->
+            <div id="estimateBox" class="estimate-box hidden">
+                <div class="estimate-header">
+                    <i class="fas fa-calculator"></i>
+                    <span>{% trans "Estimated Amount" %}</span>
+                    <div id="estimateSpinner" class="spinner" style="display: none;"></div>
+                </div>
+                <div id="estimatedAmount" class="estimate-amount"></div>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn-submit">
+                <i class="fas fa-arrow-right"></i>
+                {% trans "Proceed to Payment" %}
+            </button>
+        </form>
+    </div>
+
+    <!-- Information Cards -->
+    <div class="info-grid">
+        <div class="info-card">
+            <div class="info-card-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h3 class="info-card-title">{% trans "Automatic Crediting" %}</h3>
+            <p class="info-card-text">
+                {% trans "Automatic deposit crediting after payment confirmation" %}
+            </p>
+        </div>
+
+        <div class="info-card">
+            <div class="info-card-icon">
+                <i class="fas fa-clock"></i>
+            </div>
+            <h3 class="info-card-title">{% trans "Processing Time" %}</h3>
+            <p class="info-card-text">
+                {% trans "Processing time varies by network (typically 10-60 minutes)" %}
+            </p>
+        </div>
+
+        <div class="info-card">
+            <div class="info-card-icon">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <h3 class="info-card-title">{% trans "Secure Processing" %}</h3>
+            <p class="info-card-text">
+                {% trans "All transactions are secured and processed by NOWPayments" %}
+            </p>
+        </div>
+
+        <div class="info-card">
+            <div class="info-card-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h3 class="info-card-title">{% trans "Address Verification" %}</h3>
+            <p class="info-card-text">
+                {% trans "Always verify the payment address before sending funds" %}
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Payment Modal -->
+<div class="modal" id="paymentModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <i class="fas fa-qrcode"></i>
+                    {% trans "Complete Your Payment" %}
+                </h3>
+                <button type="button" class="modal-close" onclick="closeModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Payment Timer -->
+                <div class="payment-timer">
+                    <i class="far fa-clock"></i>
+                    <span>{% trans "Payment window closes in" %}</span>
+                    <span class="timer-value" id="paymentTimer">15:00</span>
+                </div>
+
+                <!-- QR Code -->
+                <div class="qr-container">
+                    <div id="qrCode" class="qr-code"></div>
+                </div>
+
+                <!-- Payment Amount -->
+                <div class="payment-field">
+                    <label class="payment-label">
+                        <i class="fas fa-coins"></i>
+                        {% trans "Send exactly" %}:
+                    </label>
+                    <div class="payment-input-group">
+                        <input type="text" id="payAmount" class="payment-input" readonly>
+                        <button class="btn-copy" type="button" onclick="copyToClipboard('#payAmount', this)">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Payment Address -->
+                <div class="payment-field">
+                    <label class="payment-label">
+                        <i class="fas fa-map-pin"></i>
+                        {% trans "To this address" %}:
+                    </label>
+                    <div class="payment-input-group">
+                        <input type="text" id="payAddress" class="payment-input" readonly>
+                        <button class="btn-copy" type="button" onclick="copyToClipboard('#payAddress', this)">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Network Display -->
+                <div class="payment-field">
+                    <label class="payment-label">
+                        <i class="fas fa-network-wired"></i>
+                        {% trans "Network" %}:
+                    </label>
+                    <div class="payment-input-group">
+                        <input type="text" id="payNetwork" class="payment-input" readonly>
+                    </div>
+                </div>
+
+                <!-- Network Warning -->
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>{% trans "Make sure to send your payment on the correct network to avoid loss of funds" %}</span>
+                </div>
+
+                <!-- Payment Status -->
+                <div id="paymentStatus" class="alert alert-info">
+                    <div class="spinner"></div>
+                    <span>{% trans "Waiting for payment..." %}</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-close-modal" onclick="closeModal()">
+                    {% trans "Close" %}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/qrcode.js"></script>
+<script>
+// API Endpoints
+const DEPOSIT_CREATE_URL = "{% url 'core:create_deposit' %}";
+const ESTIMATE_URL = "{% url 'core:estimate_price' %}";
+const PAYMENT_STATUS_URL = function(depositId) {
+    return "{% url 'core:check_deposit_status' 'DEPOSIT_ID' %}".replace('DEPOSIT_ID', depositId);
+};
+
+// Modal functions
+function closeModal() {
+    document.getElementById('paymentModal').classList.remove('show');
+}
+
+function showModal() {
+    document.getElementById('paymentModal').classList.add('show');
+}
+
+// Payment timer function
+function startPaymentTimer(duration) {
+    let timer = duration;
+    const timerDisplay = document.getElementById('paymentTimer');
+    const interval = setInterval(function() {
+        const minutes = parseInt(timer / 60, 10);
+        const seconds = parseInt(timer % 60, 10);
+
+        timerDisplay.textContent = minutes.toString().padStart(2, '0') + ':' + 
+                                 seconds.toString().padStart(2, '0');
+
+        if (--timer < 0) {
+            clearInterval(interval);
+            timerDisplay.innerHTML = '<span style="color: var(--danger-color);">{% trans "Expired" %}</span>';
+            setTimeout(() => closeModal(), 3000);
+        }
+    }, 1000);
+    return interval;
+}
+
+// Estimate debounce function
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+// Copy to clipboard function
+function copyToClipboard(selector, button) {
+    const el = document.querySelector(selector);
+    if (!el) return;
+    
+    el.select();
+    navigator.clipboard.writeText(el.value)
+        .then(() => {
+            const icon = button.querySelector('i');
+            const originalClass = icon.className;
+            button.classList.add('copied');
+            icon.className = 'fas fa-check';
+            setTimeout(() => {
+                button.classList.remove('copied');
+                icon.className = originalClass;
+            }, 2000);
+        })
+        .catch(error => console.error('Copy failed:', error));
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('depositForm');
+    const amountInput = document.getElementById('id_amount');
+    const cryptoSelect = document.getElementById('id_pay_currency');
+    const estimateBox = document.getElementById('estimateBox');
+    const estimateSpinner = document.getElementById('estimateSpinner');
+    let paymentTimer = null;
+
+    // Get estimate when amount or currency changes
+    const updateEstimate = debounce(() => {
+        const amount = amountInput?.value;
+        const currency = cryptoSelect?.value;
+
+        if (!amount || !currency || amount < 10) {
+            estimateBox.classList.add('hidden');
+            return;
+        }
+
+        estimateSpinner.style.display = 'inline-block';
+        fetch(`${ESTIMATE_URL}?amount=${encodeURIComponent(amount)}&currency_to=${encodeURIComponent(currency.toLowerCase())}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    estimateBox.classList.remove('hidden');
+                    const estimatedCrypto = parseFloat(data.estimated_amount).toFixed(8);
+                    const estimateEl = document.getElementById('estimatedAmount');
+                    if (estimateEl) {
+                        estimateEl.textContent = `${estimatedCrypto} ${currency.toUpperCase()}`;
+                    }
+                }
+            })
+            .catch(error => {
+                console.warn('Estimate failed:', error);
+                estimateBox.classList.add('hidden');
+            })
+            .finally(() => {
+                estimateSpinner.style.display = 'none';
+            });
+    }, 500);
+
+    amountInput?.addEventListener('input', updateEstimate);
+    cryptoSelect?.addEventListener('change', updateEstimate);
+
+    // Handle form submission
+    form?.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalBtnText = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `<span class="spinner"></span>{% trans "Processing..." %}`;
+
+        // Clear any existing payment timer
+        if (paymentTimer) {
+            clearInterval(paymentTimer);
+        }
+
+        const formData = new FormData(form);
+        fetch(DEPOSIT_CREATE_URL, {
+            method: 'POST',
+            body: formData,
+            headers: {'X-Requested-With': 'XMLHttpRequest'}
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Deposit response:', data);
+            if (data.success) {
+                // Update payment details
+                document.getElementById('payAmount').value = data.pay_amount || '';
+                document.getElementById('payAddress').value = data.pay_address || '';
+                    // Show selected network (use provided network or fallback to currency display name)
+                    const payNetworkEl = document.getElementById('payNetwork');
+                    if (payNetworkEl) {
+                        payNetworkEl.value = data.network || (data.currency_name ? data.currency_name.toUpperCase() : '');
+                    }
+                
+                // Generate QR code
+                if (typeof QRCode !== 'undefined' && data.pay_address) {
+                    const qrEl = document.getElementById('qrCode');
+                    qrEl.innerHTML = '';
+                    new QRCode(qrEl, data.pay_address);
+                }
+
+                // Show modal and start timer
+                showModal();
+                paymentTimer = startPaymentTimer(15 * 60); // 15 minutes
+
+                // Start polling payment status
+                if (data.deposit_id) {
+                    let pollCount = 0;
+                    const maxPolls = 180; // 15 minutes at 5 second intervals
+                    const pollInterval = setInterval(() => {
+                        pollCount++;
+                        fetch(PAYMENT_STATUS_URL(data.deposit_id))
+                            .then(response => response.json())
+                            .then(statusData => {
+                                if (statusData.success) {
+                                    const status = statusData.payment_status;
+                                    const statusEl = document.getElementById('paymentStatus');
+                                    
+                                    switch(status) {
+                                        case 'finished':
+                                            clearInterval(pollInterval);
+                                            statusEl.className = 'alert alert-success';
+                                            statusEl.innerHTML = `
+                                                <i class="fas fa-check-circle"></i>
+                                                <span>{% trans "Payment completed successfully!" %}</span>`;
+                                            setTimeout(() => window.location.reload(), 3000);
+                                            break;
+                                        case 'failed':
+                                        case 'expired':
+                                        case 'cancelled':
+                                            clearInterval(pollInterval);
+                                            statusEl.className = 'alert alert-danger';
+                                            statusEl.innerHTML = `
+                                                <i class="fas fa-times-circle"></i>
+                                                <span>{% trans "Payment" %} ${status}. {% trans "Please try again." %}</span>`;
+                                            break;
+                                        case 'confirming':
+                                            statusEl.className = 'alert alert-warning';
+                                            statusEl.innerHTML = `
+                                                <div class="spinner"></div>
+                                                <span>{% trans "Payment detected! Confirming transaction..." %}</span>`;
+                                            break;
+                                        default:
+                                            statusEl.className = 'alert alert-info';
+                                            statusEl.innerHTML = `
+                                                <div class="spinner"></div>
+                                                <span>{% trans "Waiting for payment..." %}</span>`;
+                                    }
+                                }
+                            })
+                            .catch(error => console.error('Status check failed:', error));
+
+                        if (pollCount >= maxPolls) clearInterval(pollInterval);
+                    }, 5000);
+                }
+            } else {
+                // Show error message
+                console.error('Deposit failed:', data);
+                const errorMessage = data.error || '{% trans "Failed to create deposit" %}';
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'alert alert-danger';
+                alertDiv.style.marginTop = '1.5rem';
+                alertDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i><span>${errorMessage}</span>`;
+                form.appendChild(alertDiv);
+                setTimeout(() => alertDiv.remove(), 5000);
+            }
+        })
+        .catch(error => {
+            console.error('Deposit creation error:', error);
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-danger';
+            alertDiv.style.marginTop = '1.5rem';
+            alertDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i><span>{% trans "Error creating deposit" %}</span>`;
+            form.appendChild(alertDiv);
+            setTimeout(() => alertDiv.remove(), 5000);
+        })
+        .finally(() => {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
+        });
+    });
+
+    // Close modal on backdrop click
+    document.getElementById('paymentModal')?.addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeModal();
+        }
+    });
+});
+</script>
+{% endblock %}

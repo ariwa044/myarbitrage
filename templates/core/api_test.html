@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}NOWPayments API Test{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-4">NOWPayments API Diagnostics</h2>
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">API Configuration</h5>
+                </div>
+                <div class="card-body">
+                    <div id="configStatus">Loading...</div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Currencies Test</h5>
+                </div>
+                <div class="card-body">
+                    <div id="currenciesTest">Loading...</div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Price Estimation Test</h5>
+                </div>
+                <div class="card-body">
+                    <div id="estimateTest">Loading...</div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Supported Networks</h5>
+                </div>
+                <div class="card-body">
+                    <div id="networksStatus">Loading...</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Recent Transactions</h5>
+                </div>
+                <div class="card-body">
+                    <div id="transactionsStatus">Loading...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Fetch API test results
+    fetch('{% url "core:test_nowpayments_api" %}')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update configuration status
+                const config = data.api_configuration;
+                document.getElementById('configStatus').innerHTML = `
+                    <ul class="list-unstyled">
+                        <li><strong>API Key:</strong> ${config.api_key ? '✅ Configured' : '❌ Missing'}</li>
+                        <li><strong>IPN Secret:</strong> ${config.ipn_secret ? '✅ Configured' : '❌ Missing'}</li>
+                        <li><strong>Mode:</strong> ${config.sandbox_mode ? '🔧 Sandbox' : '🌐 Production'}</li>
+                        <li><strong>API URL:</strong> ${config.base_url}</li>
+                        <li><strong>Deposit Limits:</strong> $${data.minimum_deposit} - $${data.maximum_deposit}</li>
+                    </ul>
+                `;
+
+                // Update currencies test
+                const currencies = data.currencies_test;
+                document.getElementById('currenciesTest').innerHTML = `
+                    <div class="${currencies.status === 'success' ? 'text-success' : 'text-danger'}">
+                        <strong>Status:</strong> ${currencies.status}
+                        ${currencies.status === 'success' 
+                            ? `<br><strong>Available Currencies:</strong> ${currencies.count}`
+                            : `<br><strong>Error:</strong> ${currencies.error}`
+                        }
+                    </div>
+                `;
+
+                // Update estimate test
+                const estimate = data.estimate_test;
+                document.getElementById('estimateTest').innerHTML = `
+                    <div class="${estimate.status === 'success' ? 'text-success' : 'text-danger'}">
+                        <strong>Status:</strong> ${estimate.status}
+                        ${estimate.status === 'success'
+                            ? `<br><pre>${JSON.stringify(estimate.data, null, 2)}</pre>`
+                            : `<br><strong>Error:</strong> ${estimate.error}`
+                        }
+                    </div>
+                `;
+
+                // Update networks status
+                const networks = data.supported_networks;
+                document.getElementById('networksStatus').innerHTML = `
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Currency</th>
+                                    <th>Name</th>
+                                    <th>Network</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${Object.entries(networks).map(([code, info]) => `
+                                    <tr>
+                                        <td>${code.toUpperCase()}</td>
+                                        <td>${info.name}</td>
+                                        <td>${info.network}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+
+                // Update transactions status
+                const transactions = data.recent_transactions;
+                document.getElementById('transactionsStatus').innerHTML = transactions.length ? `
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Deposit ID</th>
+                                    <th>Payment ID</th>
+                                    <th>Status</th>
+                                    <th>Amount</th>
+                                    <th>Currency</th>
+                                    <th>Created</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${transactions.map(tx => `
+                                    <tr>
+                                        <td>${tx.deposit_id}</td>
+                                        <td>${tx.payment_id}</td>
+                                        <td>${tx.status}</td>
+                                        <td>$${tx.amount}</td>
+                                        <td>${tx.currency.toUpperCase()}</td>
+                                        <td>${new Date(tx.created_at).toLocaleString()}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                ` : '<p>No recent transactions found.</p>';
+
+            } else {
+                document.querySelectorAll('[id$="Status"]').forEach(el => {
+                    el.innerHTML = `<div class="text-danger">Test failed: ${data.error}</div>`;
+                });
+            }
+        })
+        .catch(error => {
+            document.querySelectorAll('[id$="Status"]').forEach(el => {
+                el.innerHTML = `<div class="text-danger">Failed to load test results: ${error}</div>`;
+            });
+        });
+});
+</script>
+{% endblock %}

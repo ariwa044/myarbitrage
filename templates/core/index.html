@@ -1,0 +1,265 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+{% load math_filters %}
+
+{% block title %}Welcome to ArbitrageFlow - Smart Algorithmic Trading{% endblock %}
+
+{% block meta_description %}ArbitrageFlow is an automated cryptocurrency arbitrage trading platform that helps you earn consistent returns through market inefficiencies.{% endblock %}
+
+{% block meta_keywords %}crypto arbitrage, automated trading, cryptocurrency investment, algorithmic trading, bitcoin arbitrage{% endblock %}
+
+{% block extra_css %}
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero">
+    
+    <div class="container">
+        <div class="hero-content">
+            <div class="hero-badge">
+                <i class="fas fa-chart-line"></i>
+                Algorithmic investing
+            </div>
+            
+            <h1 class="hero-title">
+                Profits<br>every day
+            </h1>
+            
+            <p class="hero-description">
+                Our platform identifies market inefficiencies and executes arbitrage trades automatically. Generate consistent returns while managing risk intelligently.
+            </p>
+            
+            <div class="hero-buttons">
+                <a href="{% url 'account:register' %}" class="btn btn-primary">
+                    <i class="fas fa-play-circle"></i> Start investing <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+            
+            <div class="hero-stats">
+                <div class="stat">
+                    <div class="stat-number"><i class="fas fa-chart-line"></i> 12%+</div>
+                    <div class="stat-label">avg monthly return</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number"><i class="fas fa-robot"></i> 24/7</div>
+                    <div class="stat-label">automated trading</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number"><i class="fas fa-dollar-sign"></i> 4.2M</div>
+                    <div class="stat-label">daily volume processed</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How it works -->
+<section class="section">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">How it works</h2>
+            <p class="section-subtitle">Four simple steps to start earning</p>
+        </div>
+        
+        <div class="steps">
+            <div class="step">
+                <div class="step-number">01</div>
+                <div class="step-content">
+                    <h3 class="step-title"><i class="fas fa-link"></i> Register an account</h3>
+                    <p class="step-description">Register for an investment account securely. We use bank-grade encryption and never hold your funds.</p>
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">02</div>
+                <div class="step-content">
+                    <h3 class="step-title"><i class="fas fa-sliders-h"></i> Choose Investment Plan</h3>
+                    <p class="step-description">Choose your risk tolerance and investment amount. Our system handles everything else.</p>
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">03</div>
+                <div class="step-content">
+                    <h3 class="step-title"><i class="fas fa-robot"></i> Algorithm executes trades</h3>
+                    <p class="step-description">Our system scans markets 24/7 and executes profitable arbitrage opportunities automatically.</p>
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">04</div>
+                <div class="step-content">
+                    <h3 class="step-title"><i class="fas fa-money-bill-wave"></i> Daily profits credited</h3>
+                    <p class="step-description">Earnings are calculated and available daily. Withdraw anytime, no lock-in periods.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Pricing -->
+<section class="pricing-section">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">Investment Plans</h2>
+            <p class="section-subtitle">Choose the plan that works for you</p>
+        </div>
+        
+        <div class="our-plans">
+            {% for plan in plans %}
+            <div class="plan">                
+                <div class="plan-header">
+                    <h3 class="plan-title">{{ plan.name }}</h3>
+                    <p class="plan-subtitle">Investment plan for {{ plan.duration_days }} days</p>
+                </div>
+                
+                <div class="plan-price">
+                    <span class="price">{{ plan.percent_return }}%</span>
+                    <span class="price-period">daily return</span>
+                </div>
+                
+                <div class="plan-features">
+                    <div class="plan-feature available">
+                        <i class="fas fa-check check-icon"></i>
+                        Min: ${{ plan.min_amount|floatformat:0 }}
+                    </div>
+                    <div class="plan-feature available">
+                        <i class="fas fa-check check-icon"></i>
+                        Max: ${{ plan.max_amount|floatformat:0 }}
+                    </div>
+                    <div class="plan-feature available">
+                        <i class="fas fa-check check-icon"></i>
+                        Duration: {{ plan.duration_days }} days
+                    </div>
+                    
+                </div>
+                
+                <a href="{% url 'core:create_investment' plan.id %}" class="btn btn-outline" style="width: 100%;"><i class="fas fa-arrow-right"></i> Get Started</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+<!-- What is Arbitrage -->
+<section class="arbitrage-section">
+    <div class="container">
+        <div class="arbitrage-content">
+            <h2 class="arbitrage-title">What is arbitrage?</h2>
+            
+            <p class="arbitrage-text">
+                Arbitrage is the practice of exploiting price differences of identical assets across different markets. When an asset trades at different prices simultaneously, we buy at the lower price and sell at the higher price, capturing the difference as profit.
+            </p>
+            
+            <div class="highlight-box">
+                <h3 class="highlight-title"><i class="fas fa-lightbulb"></i> Why it works every day</h3>
+                <p class="arbitrage-text">
+                    Markets are constantly creating inefficiencies due to timing delays, geographic differences, and information asymmetry. These micro-opportunities appear thousands of times daily. While individual trades are small, the volume and consistency generate substantial returns.
+                </p>
+            </div>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h4 class="feature-card-title"><i class="fas fa-shield-alt"></i> Risk profile</h4>
+                    <p class="feature-card-description">Unlike directional bets, arbitrage profits come from market inefficiencies, not price movements. Returns are largely independent of whether markets rise or fall.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4 class="feature-card-title"><i class="fas fa-history"></i> Historical performance</h4>
+                    <p class="feature-card-description">Arbitrage strategies have been used by institutional traders for decades. We've democratized this approach for individual investors.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Platform Features -->
+<section class="features-section">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">Built for serious investors</h2>
+            <p class="section-subtitle">Everything you need, nothing you don't</p>
+        </div>
+        
+        <div class="feature-showcase">
+            <div class="feature-image">
+                <img src="{% static 'images/hero-image.jpg'%}" alt="Dashboard">
+            </div>
+            
+            <div class="feature-list">
+                <div class="feature-item">
+                    <h3 class="feature-item-title"><i class="fas fa-tachometer-alt"></i> Real-time dashboard</h3>
+                    <p class="feature-item-description">Monitor all positions, daily returns, market analysis, and account performance in one unified dashboard. Live updates every second.</p>
+                </div>
+                
+                <div class="feature-item">
+                    <h3 class="feature-item-title"><i class="fas fa-user-shield"></i> Advanced risk controls</h3>
+                    <p class="feature-item-description">Set daily loss limits, position sizes, and exposure thresholds. The system automatically protects your capital.</p>
+                </div>
+                
+                <div class="feature-item">
+                    <h3 class="feature-item-title"><i class="fas fa-lock"></i> Bank-level security</h3>
+                    <p class="feature-item-description">256-bit encryption, two-factor authentication, and regular security audits. Your funds are protected.</p>
+                </div>
+                
+                <div class="feature-item">
+                    <h3 class="feature-item-title"><i class="fas fa-chart-pie"></i> Transparent reporting</h3>
+                    <p class="feature-item-description">Detailed trade logs, performance analytics, and tax reports. Know exactly where every dollar comes from.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="features-grid-small">
+            <div class="feature-card-small">
+                <div class="feature-icon">
+                    <i class="fas fa-search-dollar"></i>
+                </div>
+                <h3 class="feature-card-title">Multi-market scanning</h3>
+                <p class="feature-card-description">Scans crypto, stocks, forex, commodities across 50+ exchanges</p>
+            </div>
+            
+            <div class="feature-card-small">
+                <div class="feature-icon">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <h3 class="feature-card-title">Microsecond execution</h3>
+                <p class="feature-card-description">Algorithms execute trades in milliseconds to capture spreads</p>
+            </div>
+            
+            <div class="feature-card-small">
+                <div class="feature-icon">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                <h3 class="feature-card-title">Performance tracking</h3>
+                <p class="feature-card-description">Detailed analytics on returns, volatility, and drawdowns</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- CTA -->
+<section class="cta-section">
+    <div class="container">
+        <div class="cta-content">
+            <h2 class="cta-title">Ready to start?</h2>
+            <p class="cta-description">Join investors generating consistent profits through arbitrage</p>
+            <a href="{% url 'account:register' %}" class="cta-button"><i class="fas fa-user-plus"></i> Create account</a>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+<script>
+    // Initialize page-specific functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize Font Awesome icons
+        if (typeof FontAwesome !== 'undefined') {
+            FontAwesome.config.autoAddCss = false;
+        }
+    });
+</script>
+{% endblock %}

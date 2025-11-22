@@ -1,0 +1,15 @@
+.button {
+    background: #007bff;
+    color: #fff;
+    border: none;
+    padding: 4px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 4px;
+}
+.button:hover {
+    background: #0056b3;
+}
+.table th, .table td {
+    vertical-align: middle !important;
+}
