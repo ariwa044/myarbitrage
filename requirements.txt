@@ -6,3 +6,4 @@ whitenoise
 django-shortuuidfield
 gunicorn
 django-cors-headers
+requests
