@@ -1,0 +1,6 @@
+django-jazzmin
+python-dotenv
+psycopg2-binary
+Django=4.2
+whitenoise
+django-shortuuidfield
