@@ -73,7 +73,9 @@ NOWPAYMENTS = {
     }
 }
 
-ALLOWED_HOSTS = ['*', 'arbitrageflow-92945097390.europe-west1.run.app', 'arbitrageflow.online']
+ALLOWED_HOSTS = ['*', 'https://myarbitrage-92945097390.europe-west1.run.app', 'arbitrageflow.online']
+
+
 
 AUTH_USER_MODEL = 'account.User'
 
