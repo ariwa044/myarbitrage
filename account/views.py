@@ -45,7 +45,7 @@ def user_login(request):
                 login(request, user)
                 
                 messages.success(request, 'Login successful!')
-                return redirect('dashboard')
+                return redirect('account:dashboard')
             else:
                 messages.error(request, 'Invalid email or password.')
     else:
@@ -66,7 +66,7 @@ def profile(request):
         if form.is_valid():
             form.save()
             messages.success(request, 'Your profile has been updated successfully!')
-            return redirect('profile')
+            return redirect('account:profile')
     else:
         form = ProfileUpdateForm(instance=request.user)
     
