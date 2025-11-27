@@ -4,7 +4,7 @@ from django.urls import reverse, path
 from django.db.models import Sum, Count
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
-from .models import Deposit, Withdrawal, Type_plans, Investment, Cryptocurrency, Cryptocurrency
+from .models import Deposit, Withdrawal, Type_plans, Investment, Cryptocurrency
 
 @admin.register(Cryptocurrency)
 class CryptocurrencyAdmin(admin.ModelAdmin):
@@ -34,17 +34,7 @@ class DepositAdmin(admin.ModelAdmin):
     ordering = ['-created_at']
     readonly_fields = ['deposit_id', 'created_at']
     
-    fieldsets = (
-        ('Basic Information', {
-            'fields': ('deposit_id', 'user', 'amount', 'status')
-        }),
-        ('Cryptocurrency Details', {
-            'fields': ('crypto', 'pay_address', 'pay_amount')
-        }),
-        ('Timestamps', {
-            'fields': ('created_at',)
-        })
-    )
+
     
     def user_email(self, obj):
         return obj.user.email
@@ -65,17 +55,6 @@ class WithdrawalAdmin(admin.ModelAdmin):
     readonly_fields = ['withdrawal_id', 'created_at']
     ordering = ['-created_at']
     
-    fieldsets = (
-        ('Basic Information', {
-            'fields': ('withdrawal_id', 'user', 'amount', 'status')
-        }),
-        ('Crypto Details', {
-            'fields': ('crypto_currency', 'wallet_address')
-        }),
-        ('Timestamps', {
-            'fields': ('created_at',)
-        })
-    )
     
     def user_email(self, obj):
         return obj.user.email

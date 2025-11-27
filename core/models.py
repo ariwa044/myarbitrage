@@ -319,10 +319,6 @@ def update_profile_balance_on_withdrawal(sender, instance, created, **kwargs):
         Profile.objects.filter(user=instance.user).update(
             account_balance=F('account_balance') - instance.amount
         )
-        # Set completed timestamp if not already set
-        if not instance.completed_at:
-            instance.completed_at = timezone.now()
-            instance.save(update_fields=['completed_at'])
 
 @receiver(post_save, sender=Investment)
 def update_profile_balance_on_investment(sender, instance, created, **kwargs):
