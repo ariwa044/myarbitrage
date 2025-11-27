@@ -17,7 +17,6 @@ DEPOSIT_STATUS = [
     ('PENDING', 'Pending'),
     ('COMPLETED', 'Completed'),
     ('FAILED', 'Failed'),
-    ('EXPIRED', 'Expired'),
     ('CANCELLED', 'Cancelled'),
 ]
 
@@ -28,29 +27,21 @@ WITHDRAWAL_STATUS = [
     ]
 
 
-CRYPTO_CHOICES = [
-    ('btc', 'Bitcoin (BTC)'),
-    ('sol', 'Solana (SOL)'),
-    ('usdterc20', 'USDT ERC20'),
-    ('usdttrc20', 'USDT TRC20'),
-    ('usdtbep20', 'USDT BEP20'),
-    ('eth', 'Ethereum (ETH)')
-]
+
+class Cryptocurrency(models.Model):
+    name = models.CharField(max_length=100, help_text="Display name, e.g. 'Bitcoin'")
+    symbol = models.CharField(max_length=10, null=True, blank=True, help_text="Symbol like BTC")
+    deposit_address = models.CharField(max_length=255, null=True, blank=True, help_text="Default deposit address for this crypto")
+
+    class Meta:
+        verbose_name = 'Cryptocurrency'
+        verbose_name_plural = 'Cryptocurrencies'
+
+    def __str__(self):
+        return f"{self.name} ({self.symbol})"
 
 class Deposit(models.Model):
-    """
-    Model for tracking cryptocurrency deposits through NOWPayments
-    """
-    # Payment Status Choices
-    PAYMENT_STATUS_CHOICES = [
-        ('waiting', 'Waiting for Payment'),
-        ('partially_paid', 'Partially Paid'),
-        ('finished', 'Payment Complete'),
-        ('failed', 'Payment Failed'),
-        ('refunded', 'Payment Refunded'),
-        ('expired', 'Payment Expired'),
-        ('cancelled', 'Payment Cancelled'),
-    ]
+
     
     # Core fields
     deposit_id = ShortUUIDField(
@@ -77,145 +68,31 @@ class Deposit(models.Model):
         choices=DEPOSIT_STATUS,
         default='PENDING'
     )
-    # Make created_at editable by using a default rather than auto_now_add
-    # auto_now_add sets editable=False which prevents editing in admin.
-    created_at = models.DateTimeField(default=timezone.now)
-    
-    # NOWPayments fields
-    payment_id = models.CharField(
-        max_length=100,
-        unique=True,
-        help_text="NOWPayments payment ID",
-        null=True, blank=True
+
+    crypto = models.ForeignKey(
+        Cryptocurrency,
+        on_delete= models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='deposits',
+        help_text='Selected cryptocurrency for this deposit'
     )
-    pay_address = models.CharField(
-        max_length=100,
-        help_text="Cryptocurrency address for payment",
-        null=True, blank=True
-    )
+
+    # Optional address/amount fields — these are simple inputs (or copied from `Cryptocurrency`)
+
     pay_amount = models.DecimalField(
         max_digits=20,
         decimal_places=8,
         help_text="Amount in cryptocurrency to pay",
         null=True, blank=True
     )
-    pay_currency = models.CharField(
-        max_length=20,
-        choices=CRYPTO_CHOICES,
-        help_text="Selected cryptocurrency for payment"
-    )
-    payment_status = models.CharField(
-        max_length=20,
-        choices=PAYMENT_STATUS_CHOICES,
-        default='waiting',
-        help_text="Current payment status from NOWPayments"
-    )
-    # Processing flags
-    ipn_processed = models.BooleanField(
-        default=False,
-        help_text="Whether the IPN webhook has been processed"
-    )
-    completed_at = models.DateTimeField(
-        null=True,
-        blank=True,
-        help_text="When the deposit was completed"
-    )
-    
-    
-    class Meta:
-        verbose_name = 'Deposit'
-        verbose_name_plural = 'Deposits'
-        ordering = ['-created_at']
-        indexes = [
-            models.Index(fields=['payment_id']),
-            models.Index(fields=['user', 'status']),
-            models.Index(fields=['created_at']),
-        ]
+
+    created_at = models.DateTimeField(default=timezone.now)
+ 
         
     def __str__(self):
-        return f"Deposit {self.deposit_id} by {self.user.email}"
-        
-    @property
-    def is_completed(self):
-        """Check if deposit is completed"""
-        return self.status == 'COMPLETED'
-        
-    @property
-    def is_failed(self):
-        """Check if deposit has failed"""
-        return self.status == 'FAILED'
-        
-    @property
-    def is_pending(self):
-        """Check if deposit is still pending"""
-        return self.status == 'PENDING'
-        
-    @property
-    def formatted_amount(self):
-        """Get formatted deposit amount"""
-        return f"${self.amount:,.2f}"
-        
-    @property
-    def formatted_crypto_amount(self):
-        """Get formatted cryptocurrency amount"""
-        return f"{self.pay_amount:,.8f} {self.pay_currency.upper()}"
-
-    def apply_payment_status(self, payment_status: str, actually_paid: Decimal = None, save: bool = True):
-        """
-        Apply a NOWPayments payment_status to this Deposit and map it to the
-        integration-level `status` field. This centralizes the mapping logic so
-        other code paths (IPN webhook, polling sync) can call a single method.
-
-        Args:
-            payment_status: The NOWPayments payment_status string (e.g. 'finished')
-            actually_paid: Optional amount actually paid in crypto (Decimal or numeric)
-        """
-        # Normalize
-        payment_status = str(payment_status) if payment_status is not None else None
-        if payment_status is None:
-            return
-
-        self.payment_status = payment_status
-
-        # Map payment_status -> deposit.status and update amounts/timestamps
-        if payment_status == 'finished':
-            self.status = 'COMPLETED'
-            # mark completion time
-            self.completed_at = timezone.now()
-        elif payment_status in ('failed', 'expired', 'cancelled'):
-            self.status = 'FAILED'
-            self.completed_at = timezone.now()
-        elif payment_status == 'partially_paid':
-            # keep deposit pending but record actual amount
-            self.status = 'PENDING'
-            # do not persist actual paid amount; only keep status pending
-
-        # Mark that IPN has been processed when mapping is applied
-        self.ipn_processed = True
-        # If save=True, persist changes now. When called from signals (pre_save)
-        # we pass save=False so the surrounding save() call will persist.
-        if save:
-            try:
-                # mark we are saving via this helper to avoid re-entrant signal handling
-                self._apply_payment_status_in_progress = True
-                self.save()
-            finally:
-                # Clear the flag after save completes
-                try:
-                    del self._apply_payment_status_in_progress
-                except Exception:
-                    pass
-
-    class Meta:
-        verbose_name = 'Deposit'
-        verbose_name_plural = 'Deposits'
-        ordering = ['-created_at']
-        indexes = [
-            models.Index(fields=['payment_id']),
-            models.Index(fields=['user', 'status']),
-            models.Index(fields=['created_at']),
-        ]
-
+        return f"Deposit {self.pay_amount} by {self.user.email}, Status: {self.status}"
+ 
 class Withdrawal(models.Model):
     """
     Model for tracking cryptocurrency withdrawals
@@ -239,9 +116,9 @@ class Withdrawal(models.Model):
         decimal_places=2,
         help_text="Withdrawal amount in USD"
     )
-    crypto_currency = models.CharField(
-        max_length=20,
-        choices=CRYPTO_CHOICES,
+    crypto_currency = models.ForeignKey(
+        Cryptocurrency,
+        on_delete= models.CASCADE,
         help_text="Cryptocurrency for withdrawal"
     )
     wallet_address = models.CharField(
@@ -255,25 +132,7 @@ class Withdrawal(models.Model):
         choices=WITHDRAWAL_STATUS,
         default='PENDING'
     )
-    tx_hash = models.CharField(
-        max_length=100,
-        blank=True,
-        null=True,
-        help_text="Blockchain transaction hash"
-    )
-    created_at = models.DateTimeField(auto_now_add=True)
-    completed_at = models.DateTimeField(
-        null=True,
-        blank=True,
-        help_text="When the withdrawal was completed"
-    )
-    crypto_amount = models.DecimalField(
-        max_digits=20,
-        decimal_places=8,
-        null=True,
-        blank=True,
-        help_text="Amount in cryptocurrency"
-    )
+    created_at = models.DateTimeField(default=timezone.now)
 
     class Meta:
         verbose_name = 'Withdrawal'
@@ -414,47 +273,29 @@ class Investment(models.Model):
 
 @receiver(post_save, sender=Deposit)
 def update_profile_balance_on_deposit(sender, instance, created, **kwargs):
-    # Only credit profile balance when deposit transitions to COMPLETED.
-    # Use the _previous_status set in pre_save to determine if this is a transition.
+    """
+    Update the user's profile balance when a deposit transitions to COMPLETED.
+    """
     previous_status = getattr(instance, '_previous_status', None)
     if instance.status == 'COMPLETED' and previous_status != 'COMPLETED':
+        # Update the user's account balance
         Profile.objects.filter(user=instance.user).update(
             account_balance=F('account_balance') + instance.amount
         )
 
-
 @receiver(pre_save, sender=Deposit)
-def deposit_payment_status_pre_save(sender, instance, **kwargs):
-    """Pre-save signal: if payment_status changed, apply mapping to other fields
-    so a single save persists both payment_status and the mapped fields.
+def track_deposit_status_change(sender, instance, **kwargs):
     """
-    # Avoid re-entrant handling when apply_payment_status itself triggers save()
-    if getattr(instance, '_apply_payment_status_in_progress', False):
-        return
-
-    # If this is a new instance there's no previous status to compare
-    if not instance.pk:
-        # New instance — record that there was no previous status
-        instance._previous_status = None
-        return
-
-    try:
-        previous = Deposit.objects.get(pk=instance.pk)
-    except Deposit.DoesNotExist:
-        instance._previous_status = None
-        return
-
-    # Store previous status on the instance so post_save handlers can detect transitions
-    instance._previous_status = previous.status
-
-    # If the payment_status changed, apply mapping to other fields *without* saving here;
-    # the outer save() call (that triggered this pre_save) will persist the changes.
-    if previous.payment_status != instance.payment_status:
+    Track the previous status of a deposit before saving.
+    """
+    if instance.pk:
         try:
-            instance.apply_payment_status(instance.payment_status, actually_paid=None, save=False)
-        except Exception:
-            # Keep pre-save lightweight; let views/logging handle failures
-            pass
+            previous = Deposit.objects.get(pk=instance.pk)
+            instance._previous_status = previous.status
+        except Deposit.DoesNotExist:
+            instance._previous_status = None
+    else:
+        instance._previous_status = None
 
 @receiver(pre_save, sender=Withdrawal)
 def track_withdrawal_status_change(sender, instance, **kwargs):

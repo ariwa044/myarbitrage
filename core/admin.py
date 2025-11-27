@@ -4,34 +4,55 @@ from django.urls import reverse, path
 from django.db.models import Sum, Count
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
-from .models import Deposit, Withdrawal, Type_plans, Investment
+from .models import Deposit, Withdrawal, Type_plans, Investment, Cryptocurrency, Cryptocurrency
+
+@admin.register(Cryptocurrency)
+class CryptocurrencyAdmin(admin.ModelAdmin):
+    list_display = ['name', 'symbol', 'deposit_address', 'deposits_count']
+    search_fields = ['name', 'symbol']
+    readonly_fields = ['deposits_count']
+    
+    fieldsets = (
+        ('Cryptocurrency Information', {
+            'fields': ('name', 'symbol', 'deposit_address')
+        }),
+        ('Statistics', {
+            'fields': ('deposits_count',)
+        })
+    )
+    
+    def deposits_count(self, obj):
+        return obj.deposits.count()
+    deposits_count.short_description = 'Total Deposits'
 
 @admin.register(Deposit)
 class DepositAdmin(admin.ModelAdmin):
-    list_display = ['deposit_id', 'user_email', 'amount', 'pay_currency', 
-                   'payment_status', 'status', 'created_at']
-    list_filter = ['status', 'payment_status', 'pay_currency', 'created_at']
-    search_fields = ['deposit_id', 'user__email', 'payment_id']
+    list_display = ['deposit_id', 'user_email', 'amount', 'crypto_name', 
+                   'status', 'created_at']
+    list_filter = ['status', 'crypto', 'created_at']
+    search_fields = ['deposit_id', 'user__email']
     ordering = ['-created_at']
-    # deposit_id should remain readonly, but created_at is editable now
-    readonly_fields = ['deposit_id']
+    readonly_fields = ['deposit_id', 'created_at']
     
     fieldsets = (
         ('Basic Information', {
             'fields': ('deposit_id', 'user', 'amount', 'status')
         }),
-        ('Payment Details', {
-            'fields': ('payment_id', 'pay_address', 'pay_amount',
-                      'pay_currency', 'payment_status')
+        ('Cryptocurrency Details', {
+            'fields': ('crypto', 'pay_address', 'pay_amount')
         }),
-        ('Processing Details', {
-            'fields': ('ipn_processed', 'created_at')
+        ('Timestamps', {
+            'fields': ('created_at',)
         })
     )
     
     def user_email(self, obj):
         return obj.user.email
     user_email.short_description = 'User'
+    
+    def crypto_name(self, obj):
+        return f"{obj.crypto.name} ({obj.crypto.symbol})" if obj.crypto else "N/A"
+    crypto_name.short_description = 'Cryptocurrency'
     
 
 

@@ -1,7 +1,7 @@
 from django import forms
 from decimal import Decimal
 from django.conf import settings
-from .models import CRYPTO_CHOICES, Deposit
+from .models import Deposit, Cryptocurrency
 
 class WithdrawalForm(forms.Form):
     amount = forms.DecimalField(
@@ -16,15 +16,8 @@ class WithdrawalForm(forms.Form):
         }),
         help_text='Enter amount to withdraw'
     )
-    crypto_currency = forms.ChoiceField(
-        choices=[
-            ('', 'Select cryptocurrency...'),
-            ('btc', 'Bitcoin (BTC)'),
-            ('eth', 'Ethereum (ETH)'),
-            ('sol', 'Solana (SOL)'),
-            ('usdterc20', 'USDT ERC20'),
-            ('usdttrc20', 'USDT TRC20')
-        ],
+    crypto_currency = forms.ModelChoiceField(
+        queryset=Cryptocurrency.objects.all(),
         widget=forms.Select(attrs={
             'class': 'form-control-custom'
         }),
@@ -42,6 +35,8 @@ class WithdrawalForm(forms.Form):
     def __init__(self, user, *args, **kwargs):
         self.user = user
         super().__init__(*args, **kwargs)
+        # Update queryset to show name and symbol
+        self.fields['crypto_currency'].queryset = Cryptocurrency.objects.all()
 
     def clean_amount(self):
         amount = self.cleaned_data.get('amount')
@@ -65,6 +60,10 @@ class WithdrawalForm(forms.Form):
         
         if not crypto:
             raise forms.ValidationError('Please select a cryptocurrency')
+        
+        # Ensure the cryptocurrency object is valid
+        if not isinstance(crypto, Cryptocurrency):
+            raise forms.ValidationError('Invalid cryptocurrency selected')
             
         return crypto
 
@@ -132,35 +131,14 @@ class DepositForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['amount'].label = 'Amount (USD)'
         self.fields['pay_currency'].label = 'Select Cryptocurrency'
-        # Populate choices from settings.NOWPAYMENTS['SUPPORTED_NETWORKS'] when available
-        try:
-            supported = getattr(settings, 'NOWPAYMENTS', {}).get('SUPPORTED_NETWORKS')
-        except Exception:
-            supported = None
-
-        if supported and isinstance(supported, dict):
-            choices = [('', 'Select cryptocurrency...')]
-            for currency_key, details in supported.items():
-                # details may be a dict with name/network keys
-                name = details.get('name') if isinstance(details, dict) else None
-                network = details.get('network') if isinstance(details, dict) else None
-                # Only display the main name (uppercase). Do not append symbol or network.
-                label = (name or currency_key).upper()
-                choices.append((currency_key.lower(), label))
-            self.fields['pay_currency'].choices = choices
-        else:
-            # Fallback: provide basic cryptocurrency choices
-            import logging
-            logger = logging.getLogger(__name__)
-            logger.warning("NOWPAYMENTS['SUPPORTED_NETWORKS'] not configured; using fallback choices")
-            self.fields['pay_currency'].choices = [
-                ('', 'Select cryptocurrency...'),
-                ('btc', 'BITCOIN'),
-                ('eth', 'ETHEREUM'),
-                ('sol', 'SOLANA'),
-                ('usdttrc20', 'USDT TRC20'),
-                ('usdterc20', 'USDT ERC20'),
-            ]
+        
+        # Populate choices from Cryptocurrency model
+        cryptos = Cryptocurrency.objects.all()
+        choices = [('', 'Select cryptocurrency...')]
+        for crypto in cryptos:
+            choices.append((str(crypto.id), f"{crypto.name} ({crypto.symbol})"))
+        
+        self.fields['pay_currency'].choices = choices
 
     def clean_amount(self):
         amount = self.cleaned_data['amount']

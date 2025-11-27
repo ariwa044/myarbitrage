@@ -40,38 +40,11 @@ SECRET_KEY = 'django-insecure-yy90w5ujb3(ke8%@qio1(@#t6uq7w^4uk))2!s%44^^*m$-i#m
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-# NOWPayments API settings
-NOWPAYMENTS_API_KEY = get_env_value('NOWPAYMENTS_API_KEY')
-NOWPAYMENTS_IPN_SECRET = get_env_value('NOWPAYMENTS_IPN_SECRET')
-NOWPAYMENTS_SANDBOX = False  # Force using main API
 SITE_URL = os.getenv('SITE_URL', 'http://localhost:8000')
 
 # Payment settings
 MIN_DEPOSIT_AMOUNT = Decimal(os.getenv('MIN_DEPOSIT_AMOUNT', '10.00'))
 MAX_DEPOSIT_AMOUNT = Decimal(os.getenv('MAX_DEPOSIT_AMOUNT', '50000.00'))
-
-# NOWPayments specific settings
-NOWPAYMENTS = {
-    'API_KEY': NOWPAYMENTS_API_KEY,
-    'IPN_SECRET': NOWPAYMENTS_IPN_SECRET,
-    'SANDBOX': False,
-    'BASE_URL': 'https://api.nowpayments.io/v1',  # Always use main API
-    'MIN_AMOUNT': MIN_DEPOSIT_AMOUNT,
-    'MAX_AMOUNT': MAX_DEPOSIT_AMOUNT,
-    'SUPPORTED_NETWORKS': {
-        'btc': {'name': 'Bitcoin', 'network': 'bitcoin'},
-        'eth': {'name': 'Ethereum', 'network': 'ethereum'},
-        'usdttrc20': {'name': 'USDT TRC20', 'network': 'tron'},
-        'usdterc20': {'name': 'USDT ERC20', 'network': 'ethereum'},
-        'usdtbep20': {'name': 'USDT BEP20', 'network': 'bsc'},
-        'sol': {'name': 'Solana', 'network': 'solana'},
-    },
-    'WEBHOOKS': {
-        'IPN_CALLBACK_URL': f"{SITE_URL}/api/crypto/ipn/",
-        'SUCCESS_URL': f"{SITE_URL}/deposit/success/",
-        'CANCEL_URL': f"{SITE_URL}/deposit/cancelled/",
-    }
-}
 
 ALLOWED_HOSTS = ['*', 'myarbitrage-92945097390.europe-west1.run.app', 'arbitrageflow.online']
 
@@ -147,16 +120,20 @@ from urllib.parse import urlparse, parse_qsl
 # Replace the DATABASES section of your settings.py with this
 tmpPostgres = urlparse(os.getenv("DATABASE_URL"))
 
+#DATABASES = {
+#    'default': {
+#        'ENGINE': 'django.db.backends.postgresql',
+#        'NAME': tmpPostgres.path.replace('/', ''),
+#        'USER': tmpPostgres.username,
+#        'PASSWORD': tmpPostgres.password,
+#        'HOST': tmpPostgres.hostname,
+#        'PORT': 5432,
+#        'OPTIONS': dict(parse_qsl(tmpPostgres.query)),
+#    }
+#}
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': tmpPostgres.path.replace('/', ''),
-        'USER': tmpPostgres.username,
-        'PASSWORD': tmpPostgres.password,
-        'HOST': tmpPostgres.hostname,
-        'PORT': 5432,
-        'OPTIONS': dict(parse_qsl(tmpPostgres.query)),
-    }
+    'default': {"ENGINE": "django.db.backends.sqlite3", "NAME": BASE_DIR / "db.sqlite3",}
 }
 
 # Password validation

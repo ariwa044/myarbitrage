@@ -462,12 +462,13 @@
     }
 
     .qr-code {
-        display: inline-block;
-        padding: 1.5rem;
-        background: var(--bg-white);
-        border: 2px solid var(--border-color);
-        border-radius: 1rem;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    display: inline-block;
+    padding: 20px;
+    background: var(--bg-white);
+    border: 2px solid var(--border-color);
+    height: 12rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-radius: 28px;
     }
 
     /* Payment Details */
@@ -772,6 +773,9 @@
                 </button>
             </div>
             <div class="modal-body">
+                <!-- Hidden deposit ID field -->
+                <input type="hidden" id="depositId" value="">
+                
                 <!-- Payment Timer -->
                 <div class="payment-timer">
                     <i class="far fa-clock"></i>
@@ -781,22 +785,11 @@
 
                 <!-- QR Code -->
                 <div class="qr-container">
-                    <div id="qrCode" class="qr-code"></div>
+                    <img id="qrCode" class="qr-code" src="" alt="QR Code" style="display: none;">
                 </div>
 
                 <!-- Payment Amount -->
-                <div class="payment-field">
-                    <label class="payment-label">
-                        <i class="fas fa-coins"></i>
-                        {% trans "Send exactly" %}:
-                    </label>
-                    <div class="payment-input-group">
-                        <input type="text" id="payAmount" class="payment-input" readonly>
-                        <button class="btn-copy" type="button" onclick="copyToClipboard('#payAmount', this)">
-                            <i class="fas fa-copy"></i>
-                        </button>
-                    </div>
-                </div>
+        
 
                 <!-- Payment Address -->
                 <div class="payment-field">
@@ -836,8 +829,8 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn-close-modal" onclick="closeModal()">
-                    {% trans "Close" %}
+                <button type="button" class="btn-close-modal" onclick="submitDeposit()">
+                    {% trans "Submit Deposit" %}
                 </button>
             </div>
         </div>
@@ -846,14 +839,22 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/qrcode.js"></script>
 <script>
 // API Endpoints
-const DEPOSIT_CREATE_URL = "{% url 'core:create_deposit' %}";
-const ESTIMATE_URL = "{% url 'core:estimate_price' %}";
+const DEPOSIT_CREATE_URL = "{% url 'core:deposit' %}";
 const PAYMENT_STATUS_URL = function(depositId) {
     return "{% url 'core:check_deposit_status' 'DEPOSIT_ID' %}".replace('DEPOSIT_ID', depositId);
 };
+
+// Generate QR code using URL-based generator
+function generateQRCode(address) {
+    const qrEl = document.getElementById('qrCode');
+    if (qrEl && address) {
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(address)}`;
+        qrEl.src = qrUrl;
+        qrEl.style.display = 'block';
+    }
+}
 
 // Modal functions
 function closeModal() {
@@ -862,6 +863,13 @@ function closeModal() {
 
 function showModal() {
     document.getElementById('paymentModal').classList.add('show');
+}
+
+function submitDeposit() {
+    const depositId = document.getElementById('depositId')?.value;
+    if (depositId) {
+        window.location.href = `/deposit/pending/${depositId}/`;
+    }
 }
 
 // Payment timer function
@@ -964,10 +972,25 @@ document.addEventListener('DOMContentLoaded', function() {
     form?.addEventListener('submit', function(e) {
         e.preventDefault();
         
+        const amountInput = document.getElementById('amountInput') || form.querySelector('input[name="amount"]');
+        const amount = parseFloat(amountInput?.value || 0);
+        const minDeposit = parseFloat('{{ min_deposit }}');
+        
+        // Validate minimum deposit
+        if (amount < minDeposit) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-danger';
+            alertDiv.style.marginTop = '1.5rem';
+            alertDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i><span>Deposit amount must be at least $${minDeposit.toFixed(2)}. You entered $${amount.toFixed(2)}.</span>`;
+            form.appendChild(alertDiv);
+            setTimeout(() => alertDiv.remove(), 5000);
+            return;
+        }
+        
         const submitBtn = form.querySelector('button[type="submit"]');
         const originalBtnText = submitBtn.innerHTML;
         submitBtn.disabled = true;
-        submitBtn.innerHTML = `<span class="spinner"></span>{% trans "Processing..." %}`;
+        submitBtn.innerHTML = `<span class="spinner"></span>Processing...`;
 
         // Clear any existing payment timer
         if (paymentTimer) {
@@ -984,8 +1007,10 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(data => {
             console.log('Deposit response:', data);
             if (data.success) {
+                // Store deposit ID in hidden field
+                document.getElementById('depositId').value = data.deposit_id;
+                
                 // Update payment details
-                document.getElementById('payAmount').value = data.pay_amount || '';
                 document.getElementById('payAddress').value = data.pay_address || '';
                     // Show selected network (use provided network or fallback to currency display name)
                     const payNetworkEl = document.getElementById('payNetwork');
@@ -994,10 +1019,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 
                 // Generate QR code
-                if (typeof QRCode !== 'undefined' && data.pay_address) {
-                    const qrEl = document.getElementById('qrCode');
-                    qrEl.innerHTML = '';
-                    new QRCode(qrEl, data.pay_address);
+                if (data.pay_address) {
+                    generateQRCode(data.pay_address);
                 }
 
                 // Show modal and start timer

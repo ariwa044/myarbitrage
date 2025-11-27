@@ -1,0 +1,612 @@
+{% extends "base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Deposit Under Review" %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: #1f2937;
+        --secondary-color: #06b6d4;
+        --success-color: #22c55e;
+        --warning-color: #f59e0b;
+        --danger-color: #ef4444;
+        --bg-light: #f8fafc;
+        --bg-white: #ffffff;
+        --text-dark: #0f172a;
+        --text-gray: #64748b;
+        --border-color: #e2e8f0;
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+
+    body {
+        font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        background: linear-gradient(135deg, var(--bg-light) 0%, #f1f5f9 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+        margin: 0;
+    }
+
+    .pending-container {
+        max-width: 500px;
+        width: 100%;
+        margin-top: 5rem;
+    }
+
+    .pending-card {
+        background: var(--bg-white);
+        border-radius: 1.5rem;
+        padding: 2rem;
+        box-shadow: var(--shadow-lg);
+        text-align: center;
+    }
+
+    .pending-icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 2rem;
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(245, 158, 11, 0.05) 100%);
+        border: 2px solid rgba(245, 158, 11, 0.3);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: var(--warning-color);
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% {
+            opacity: 1;
+        }
+        50% {
+            opacity: 0.7;
+        }
+    }
+
+    .pending-title {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--text-dark);
+        margin-bottom: 1rem;
+        letter-spacing: -0.5px;
+    }
+
+    .pending-status {
+        display: inline-block;
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(245, 158, 11, 0.05) 100%);
+        border: 2px solid rgba(245, 158, 11, 0.3);
+        color: #92400e;
+        padding: 0.6rem 1.2rem;
+        border-radius: 2rem;
+        font-weight: 600;
+        font-size: 0.85rem;
+        margin-bottom: 2rem;
+    }
+
+    .pending-message {
+        color: var(--text-gray);
+        font-size: 1rem;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+    }
+
+    .pending-details {
+        background: var(--bg-light);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        text-align: left;
+    }
+
+    .detail-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .detail-row:last-child {
+        border-bottom: none;
+    }
+
+    .detail-label {
+        color: var(--text-gray);
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .detail-value {
+        color: var(--text-dark);
+        font-weight: 700;
+        font-size: 0.9rem;
+    }
+
+    .timeline {
+        margin: 2rem 0;
+        position: relative;
+    }
+
+    .timeline-item {
+        display: flex;
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+        position: relative;
+        text-align: left;
+    }
+
+    .timeline-item:not(:last-child)::after {
+        content: '';
+        position: absolute;
+        left: 19px;
+        top: 40px;
+        bottom: -40px;
+        width: 2px;
+        background: var(--border-color);
+    }
+
+    .timeline-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        flex-shrink: 0;
+        position: relative;
+        z-index: 1;
+        min-width: 40px;
+    }
+
+    .timeline-icon.active {
+        background: linear-gradient(135deg, var(--success-color) 0%, #16a34a 100%);
+        color: white;
+    }
+
+    .timeline-icon.pending {
+        background: linear-gradient(135deg, var(--warning-color) 0%, #d97706 100%);
+        color: white;
+        animation: pulse 2s infinite;
+    }
+
+    .timeline-icon.inactive {
+        background: var(--border-color);
+        color: var(--text-gray);
+    }
+
+    .timeline-content {
+        flex: 1;
+        padding-top: 0.5rem;
+    }
+
+    .timeline-title {
+        font-weight: 700;
+        color: var(--text-dark);
+        font-size: 0.95rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .timeline-text {
+        color: var(--text-gray);
+        font-size: 0.85rem;
+    }
+
+    .action-buttons {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+
+    .btn {
+        padding: 0.85rem 1.5rem;
+        border-radius: 0.75rem;
+        font-weight: 600;
+        font-size: 0.95rem;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+    }
+
+    .btn-primary {
+        color: white;
+        background-color: #1f2937;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(6, 182, 212, 0.3);
+    }
+
+    .btn-secondary {
+        background: var(--bg-light);
+        color: var(--text-dark);
+        border: 2px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+        border-color: var(--secondary-color);
+        color: var(--secondary-color);
+    }
+
+    .info-box {
+        background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(34, 197, 94, 0.05) 100%);
+        border: 2px solid rgba(34, 197, 94, 0.3);
+        border-radius: 1rem;
+        padding: 1.2rem;
+        margin-top: 2rem;
+        color: #15803d;
+    }
+
+    .info-box-title {
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .info-box-text {
+        font-size: 0.9rem;
+        line-height: 1.6;
+    }
+
+    @media (max-width: 600px) {
+
+        .pending-card {
+            padding: 1.5rem;
+            border-radius: 1rem;
+        }
+
+        .pending-icon {
+            width: 60px;
+            height: 60px;
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .pending-title {
+            font-size: 1.1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .pending-status {
+            font-size: 0.75rem;
+            padding: 0.5rem 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .pending-message {
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .pending-details {
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border-radius: 0.75rem;
+        }
+
+        .detail-row {
+            padding: 0.5rem 0;
+            font-size: 0.85rem;
+        }
+
+        .detail-label,
+        .detail-value {
+            font-size: 0.85rem;
+        }
+
+        .timeline-item {
+            gap: 1rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .timeline-icon {
+            width: 35px;
+            height: 35px;
+            font-size: 1rem;
+        }
+
+        .timeline-item:not(:last-child)::after {
+            left: 17px;
+            top: 35px;
+        }
+
+        .timeline-title {
+            font-size: 0.9rem;
+        }
+
+        .timeline-text {
+            font-size: 0.8rem;
+        }
+
+        .info-box {
+            padding: 1rem;
+            margin-top: 1.5rem;
+            border-radius: 0.75rem;
+        }
+
+        .info-box-title {
+            font-size: 0.95rem;
+            margin-bottom: 0.4rem;
+        }
+
+        .info-box-text {
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+
+        .action-buttons {
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1rem;
+            font-size: 0.85rem;
+            border-radius: 0.6rem;
+        }
+
+        .btn i {
+            margin-right: 0.3rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        body {
+            padding: 0.5rem;
+        }
+
+        .pending-card {
+            padding: 1.25rem;
+        }
+
+        .pending-icon {
+            width: 50px;
+            height: 50px;
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+        }
+
+        .pending-title {
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .pending-status {
+            font-size: 0.7rem;
+            padding: 0.4rem 0.8rem;
+            margin-bottom: 1rem;
+        }
+
+        .pending-message {
+            font-size: 0.85rem;
+            line-height: 1.5;
+            margin-bottom: 1rem;
+        }
+
+        .pending-details {
+            padding: 0.75rem;
+        }
+
+        .detail-row {
+            padding: 0.4rem 0;
+            gap: 0.5rem;
+        }
+
+        .detail-label,
+        .detail-value {
+            font-size: 0.8rem;
+        }
+
+        .timeline {
+            margin: 1rem 0;
+        }
+
+        .timeline-item {
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .timeline-icon {
+            width: 32px;
+            height: 32px;
+            font-size: 0.9rem;
+            min-width: 32px;
+        }
+
+        .timeline-item:not(:last-child)::after {
+            left: 15px;
+            top: 32px;
+        }
+
+        .timeline-title {
+            font-size: 0.85rem;
+            margin-bottom: 0.2rem;
+        }
+
+        .timeline-text {
+            font-size: 0.75rem;
+        }
+
+        .timeline-content {
+            padding-top: 0.25rem;
+        }
+
+        .info-box {
+            padding: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .info-box-title {
+            font-size: 0.9rem;
+            margin-bottom: 0.3rem;
+            gap: 0.3rem;
+        }
+
+        .info-box-text {
+            font-size: 0.8rem;
+            line-height: 1.4;
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .btn {
+            padding: 0.65rem 1rem;
+            font-size: 0.8rem;
+            width: 100%;
+        }
+    }
+
+    @media (max-width: 360px) {
+        .pending-card {
+            padding: 1rem;
+        }
+
+        .pending-title {
+            font-size: 0.95rem;
+        }
+
+        .pending-message {
+            font-size: 0.8rem;
+        }
+
+        .detail-label,
+        .detail-value {
+            font-size: 0.75rem;
+        }
+
+        .timeline-title {
+            font-size: 0.8rem;
+        }
+
+        .timeline-text {
+            font-size: 0.7rem;
+        }
+
+        .btn {
+            padding: 0.6rem 0.8rem;
+            font-size: 0.75rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="pending-container">
+    <div class="pending-card">
+        <!-- Icon -->
+        <div class="pending-icon">
+            <i class="fas fa-hourglass-half"></i>
+        </div>
+
+        <!-- Title -->
+        <h1 class="pending-title">{% trans "Deposit Under Review" %}</h1>
+
+        <!-- Status Badge -->
+        <div class="pending-status">
+            <i class="fas fa-clock"></i> {% trans "Status: Pending" %}
+        </div>
+
+        <!-- Message -->
+        <p class="pending-message">
+            {% trans "Your deposit has been received and is currently under review. Your account will be credited immediately once the review is complete." %}
+        </p>
+
+        <!-- Deposit Details -->
+        <div class="pending-details">
+            <div class="detail-row">
+                <span class="detail-label">{% trans "Deposit ID" %}</span>
+                <span class="detail-value">{{ deposit.deposit_id }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">{% trans "Amount" %}</span>
+                <span class="detail-value">${{ deposit.amount }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">{% trans "Cryptocurrency" %}</span>
+                <span class="detail-value">{{ deposit.crypto.name }} ({{ deposit.crypto.symbol }})</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">{% trans "Status" %}</span>
+                <span class="detail-value">{{ deposit.get_status_display }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">{% trans "Date" %}</span>
+                <span class="detail-value">{{ deposit.created_at|date:"M d, Y H:i" }}</span>
+            </div>
+        </div>
+
+        <!-- Timeline -->
+        <div class="timeline">
+            <div class="timeline-item">
+                <div class="timeline-icon active">
+                    <i class="fas fa-check"></i>
+                </div>
+                <div class="timeline-content">
+                    <div class="timeline-title">{% trans "Payment Received" %}</div>
+                    <div class="timeline-text">{% trans "Your deposit was successfully received" %}</div>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-icon pending">
+                    <i class="fas fa-spinner"></i>
+                </div>
+                <div class="timeline-content">
+                    <div class="timeline-title">{% trans "Under Review" %}</div>
+                    <div class="timeline-text">{% trans "Our team is verifying your deposit" %}</div>
+                </div>
+            </div>
+
+            <div class="timeline-item">
+                <div class="timeline-icon inactive">
+                    <i class="fas fa-credit-card"></i>
+                </div>
+                <div class="timeline-content">
+                    <div class="timeline-title">{% trans "Account Credited" %}</div>
+                    <div class="timeline-text">{% trans "Funds will be added to your account" %}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info Box -->
+        <div class="info-box">
+            <div class="info-box-title">
+                <i class="fas fa-info-circle"></i>
+                {% trans "What happens next?" %}
+            </div>
+            <div class="info-box-text">
+                {% trans "Your deposit is being reviewed by our team. This typically takes between 1-24 hours. Once verified, the funds will be automatically credited to your account and you can start investing or trading immediately." %}
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <a href="{% url 'account:dashboard' %}" class="btn btn-primary">
+                <i class="fas fa-home"></i> {% trans "Go to Dashboard" %}
+            </a>
+            <a href="{% url 'core:deposit' %}" class="btn btn-secondary">
+                <i class="fas fa-plus"></i> {% trans "Make Another Deposit" %}
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block footer %}  {% endblock %}
