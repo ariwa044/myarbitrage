@@ -30,7 +30,7 @@ WITHDRAWAL_STATUS = [
 
 class Cryptocurrency(models.Model):
     name = models.CharField(max_length=100, help_text="Display name, e.g. 'Bitcoin'")
-    symbol = models.CharField(max_length=10, null=True, blank=True, help_text="Symbol like BTC")
+    symbol = models.CharField(max_length=30, null=True, blank=True, help_text="Symbol like BTC")
     deposit_address = models.CharField(max_length=255, null=True, blank=True, help_text="Default deposit address for this crypto")
 
     class Meta:
