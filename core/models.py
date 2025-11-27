@@ -33,6 +33,7 @@ CRYPTO_CHOICES = [
     ('sol', 'Solana (SOL)'),
     ('usdterc20', 'USDT ERC20'),
     ('usdttrc20', 'USDT TRC20'),
+    ('usdtbep20', 'USDT BEP20'),
     ('eth', 'Ethereum (ETH)')
 ]
 
@@ -55,8 +56,9 @@ class Deposit(models.Model):
     deposit_id = ShortUUIDField(
         primary_key=True,
         unique=True,
-        length=10,
-        max_length=10,
+        length=12,
+        # length=10 generates 10 chars + the prefix 'dep_' (4 chars) -> total 14
+        max_length=45,
         prefix="dep_",
         alphabet='abcdesqp1234567890'
     )
@@ -222,7 +224,8 @@ class Withdrawal(models.Model):
         primary_key=True,
         unique=True,
         length=10,
-        max_length=10,
+        # length=10 generates 10 chars + the prefix 'wit_' (4 chars) -> total 14
+        max_length=32,
         prefix="wit_",
         alphabet='abcdesqp1234567890'
     )
