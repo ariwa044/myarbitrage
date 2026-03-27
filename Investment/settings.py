@@ -46,10 +46,10 @@ SITE_URL = os.getenv('SITE_URL', 'http://localhost:8000')
 MIN_DEPOSIT_AMOUNT = Decimal(os.getenv('MIN_DEPOSIT_AMOUNT', '10.00'))
 MAX_DEPOSIT_AMOUNT = Decimal(os.getenv('MAX_DEPOSIT_AMOUNT', '50000.00'))
 
-ALLOWED_HOSTS = ['*', 'myarbitrage-92945097390.europe-west1.run.app', 'arbitrageflow.online']
+ALLOWED_HOSTS = ['*', 'arbitrageflow-psi.vercel.app', 'arbitrageflow.online']
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://myarbitrage-92945097390.europe-west1.run.app',
+    'https://arbitrageflow-psi.vercel.app',
     'https://arbitrageflow.online',
     ]
 
