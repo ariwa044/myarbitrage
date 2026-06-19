@@ -514,6 +514,48 @@
                 </div>
             </div>
 
+            <!-- Referral Code Card -->
+            <div class="profile-card">
+                <div class="card-header-custom">
+                    <i class="fas fa-share-alt"></i>
+                    <h5>{% trans 'Referral Information' %}</h5>
+                </div>
+                <div class="card-body-custom">
+                    <div class="profile-summary">
+                        <div class="summary-item">
+                            <div class="summary-icon">
+                                <i class="fas fa-barcode"></i>
+                            </div>
+                            <div class="summary-content">
+                                <h6>{% trans 'Your Referral Code' %}</h6>
+                                <p style="font-size: 1.1rem; font-weight: 600; color: var(--secondary-color); font-family: 'Courier New', monospace;">
+                                    {{ user.refferal_code }}
+                                </p>
+                                <p style="font-size: 0.85rem; color: var(--text-gray); margin-top: 0.5rem;">
+                                    {% trans 'Share this code with others to earn referral bonuses' %}
+                                </p>
+                            </div>
+                        </div>
+                        {% if user.signup_referral_code %}
+                            <div class="summary-item">
+                                <div class="summary-icon">
+                                    <i class="fas fa-link"></i>
+                                </div>
+                                <div class="summary-content">
+                                    <h6>{% trans 'Referral Code Used' %}</h6>
+                                    <p style="font-size: 1rem; font-family: 'Courier New', monospace;">
+                                        {{ user.signup_referral_code }}
+                                    </p>
+                                    <p style="font-size: 0.85rem; color: var(--text-gray); margin-top: 0.5rem;">
+                                        {% trans 'The referral code you used during signup' %}
+                                    </p>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
             <!-- Quick Actions Card -->
             
         </div>

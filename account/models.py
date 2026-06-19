@@ -2,6 +2,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
+from shortuuid.django_fields import ShortUUIDField
 
 class User(AbstractUser):
     email = models.EmailField(unique=True)
@@ -10,8 +11,21 @@ class User(AbstractUser):
     phone_number = models.CharField(max_length=30, blank=True)
     birth_date = models.DateField(null=True, blank=True)
     address = models.CharField(max_length=255, blank=True)
-    country = models.CharField(max_length=100, null=True,blank=True)
-    refferal_code = models.CharField(max_length=30, blank=True)
+    country = models.CharField(max_length=100, null=True, blank=True)
+    refferal_code = ShortUUIDField(
+        unique=True,
+        length=6,
+        max_length=30,
+        prefix="AB",
+        alphabet='1234567890',
+        help_text="Unique referral code for this user"
+    )
+    signup_referral_code = models.CharField(
+        max_length=30,
+        null=True,
+        blank=True,
+        help_text="Referral code used during signup"
+    )
     date_joined = models.DateTimeField(default=timezone.now)
 
 #    is_active = models.BooleanField(default=False)

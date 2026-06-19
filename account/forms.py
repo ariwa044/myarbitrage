@@ -38,7 +38,6 @@ class RegistrationForm(UserCreationForm):
             'country',
             'phone_number',
             'birth_date',
-            'referral_code',
             'password1',
             'password2'
         ]

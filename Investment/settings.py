@@ -191,18 +191,6 @@ LOGOUT_URL = 'account:logout'  # URL for the logout view
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Cache settings
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'unique-snowflake',
-        'TIMEOUT': 300,  # 5 minutes default timeout
-        'OPTIONS': {
-            'MAX_ENTRIES': 1000
-        }
-    }
-}
-
 # ==========================================
 # JAZZMIN ADMIN CONFIGURATION
 # ==========================================
@@ -266,15 +254,6 @@ JAZZMIN_SETTINGS = {
     },
 }
 
-# Jazzmin Admin Customizations
-JAZZMIN_UI_TWEAKS = {
-    "navbar_small": False,
-    "footer_small": False,
-    "body_small": False,
-    "brand_small": False,
-    "sidebar_nav_small": False,
-    "sidebar_disable_expand": False,
-}
 
 # ==========================================
 # PRODUCTION SECURITY SETTINGS
