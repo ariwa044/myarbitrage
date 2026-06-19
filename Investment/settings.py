@@ -203,7 +203,7 @@ JAZZMIN_SETTINGS = {
     
     # Admin interface colors and styling
     "welcome_sign": "Welcome to ArbitrageFlow Admin Dashboard",
-    "copyright": "ArbitrageFlow © 2025. All rights reserved.",
+    "copyright": "ArbitrageFlow © 2026. All rights reserved.",
     
     # Analytics
     "show_perf_icons": True,
