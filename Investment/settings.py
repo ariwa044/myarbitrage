@@ -205,46 +205,6 @@ JAZZMIN_SETTINGS = {
     "welcome_sign": "Welcome to ArbitrageFlow Admin Dashboard",
     "copyright": "ArbitrageFlow © 2025. All rights reserved.",
     
-    # Dashboard configuration
-    "order_with_respect_to": [
-        "auth",
-        "account",
-        "core",
-    ],
-    
-    # Icons for apps and models
-    "icons": {
-        "auth": "fas fa-users-cog",
-        "auth.user": "fas fa-user",
-        "auth.group": "fas fa-users",
-        "account.user": "fas fa-user-tie",
-        "account.profile": "fas fa-id-card",
-        "core.investment": "fas fa-chart-line",
-        "core.investmentplan": "fas fa-briefcase",
-        "core.deposit": "fas fa-money-bill-wave",
-        "core.withdrawal": "fas fa-wallet",
-    },
-    
-    # Customization options
-    "default_icon_parents": "fas fa-chevron-right",
-    "default_icon_children": "fas fa-arrow-right",
-    
-    # Search configuration
-    "search_model": "auth.user",
-    
-    # Admin user model
-    "user_avatar": None,
-    
-    # Appearance
-    "show_ui_builder": True,
-    "ui_tweaks": {
-        "navbar_small": False,
-        "footer_small": False,
-        "body_small": False,
-        "brand_small": False,
-        "sidebar_nav_small": False,
-    },
-    
     # Analytics
     "show_perf_icons": True,
     "perf_icons": {
