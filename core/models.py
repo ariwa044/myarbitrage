@@ -175,7 +175,7 @@ class Investment(models.Model):
     profit_made = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     is_active = models.BooleanField(default=True)
     status = models.CharField(max_length=10, choices=INVESTMENT_STATUS, default='ACTIVE')
-    last_profit_update = models.DateTimeField(auto_now_add=True, null=True, blank=True)  # Track last profit update
+    last_profit_update = models.DateTimeField(default=timezone.now)  # Track last profit update - gets updated on each profit calculation
 
     class Meta:
         verbose_name = 'Investment'
@@ -223,31 +223,72 @@ class Investment(models.Model):
             return self.amount_invested + (self.amount_invested * roi_multiplier)
 
     def calculate_daily_profit(self):
-        """Calculate daily profit based on investment amount and plan percentage"""
+        """Calculate daily profit based on investment amount and plan percentage
+        percent_return represents the daily return percentage
+        """
         daily_roi = self.type_plan.percent_return / 100
         return self.amount_invested * daily_roi
 
     def update_profit(self):
-        """Update profit for days since last update"""
+        """Update profit for days since last update, capped to investment end date"""
         from django.db import transaction
+        import logging
+        logger = logging.getLogger(__name__)
         now = timezone.now()
         
+        # Handle null end_date - cannot process without an end date
+        if not self.end_date:
+            logger.warning(f"Investment {self.plan_id} has no end_date, skipping profit update")
+            return Decimal('0')
+        
+        # Handle null start_date
+        if not self.start_date:
+            logger.warning(f"Investment {self.plan_id} has no start_date, skipping profit update")
+            return Decimal('0')
+        
+        # Ensure last_profit_update is set (for existing records)
+        if not self.last_profit_update:
+            self.last_profit_update = self.start_date
+            self.save(update_fields=['last_profit_update'])
+        
         # Only process if investment is active
-        if not self.is_active or now >= self.end_date:
-            return
-            
-        days_passed = (now - self.last_profit_update).days
+        if not self.is_active:
+            return Decimal('0')
+        
+        # If investment has ended, don't add more profits
+        if now >= self.end_date:
+            return Decimal('0')
+        
+        # Calculate days passed since last update
+        time_delta = now - self.last_profit_update
+        days_passed = time_delta.days
+        
+        # If less than a full day has passed, return 0
         if days_passed < 1:
-            return
-            
+            return Decimal('0')
+        
+        # Cap days to not exceed days until end_date
+        time_until_end = self.end_date - self.last_profit_update
+        max_days_remaining = time_until_end.days
+        
+        # Only process if there are days left in the investment
+        if max_days_remaining < 1:
+            return Decimal('0')
+        
+        # Use the minimum of days passed and days remaining
+        days_to_process = min(days_passed, max_days_remaining)
+        
         daily_profit = self.calculate_daily_profit()
-        profit_to_add = daily_profit * days_passed
+        profit_to_add = daily_profit * Decimal(days_to_process)
         
         with transaction.atomic():
-            # Update investment profit
-            self.profit_made += profit_to_add
+            # Update investment profit and last_profit_update timestamp
+            self.profit_made = F('profit_made') + profit_to_add
             self.last_profit_update = now
-            self.save()
+            self.save(update_fields=['profit_made', 'last_profit_update'])
+            
+            # Refresh from DB to get updated profit_made value
+            self.refresh_from_db()
             
             # Update user's balance with new profit
             Profile.objects.filter(user=self.user).update(

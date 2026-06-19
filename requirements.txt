@@ -1,5 +1,5 @@
-Django==4.2
-django-jazzmin
+Django==5.0.6
+django-jazzmin==3.0.4
 python-dotenv
 psycopg2-binary
 whitenoise

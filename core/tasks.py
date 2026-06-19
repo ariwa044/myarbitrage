@@ -1,6 +1,7 @@
 from celery import shared_task
 from django.utils import timezone
 from .models import Investment
+from decimal import Decimal
 import logging
 
 logger = logging.getLogger(__name__)
@@ -14,19 +15,21 @@ def process_daily_profits():
             end_date__gt=timezone.now()
         ).select_related('user', 'type_plan')
         
+        processed_count = 0
         for investment in active_investments:
             try:
                 profit_added = investment.update_profit()
-                if profit_added:
+                if profit_added > Decimal('0'):
+                    processed_count += 1
                     logger.info(
-                        f"Added daily profit of {profit_added} for investment {investment.plan_id}"
+                        f"Added daily profit of ${profit_added} for investment {investment.plan_id}"
                     )
             except Exception as e:
                 logger.error(
                     f"Failed to process daily profit for investment {investment.plan_id}: {e}"
                 )
                 
-        return f"Processed {active_investments.count()} investments"
+        return f"Processed {processed_count} investments with daily profits"
         
     except Exception as e:
         logger.error(f"Failed to process daily profits: {e}")
